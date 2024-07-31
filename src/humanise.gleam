@@ -4,8 +4,8 @@
 
 import gleam/int
 
-import bytes
-import time
+import humanise/bytes
+import humanise/time
 
 /// Format *n* microseconds as a `Float`, converting to a more optimal unit if possible.
 pub fn microseconds_float(from n: Float) -> String {

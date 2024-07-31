@@ -1,8 +1,8 @@
 import gleeunit
 import gleeunit/should
 
-import bytes
-import time
+import humanise/bytes
+import humanise/time
 
 pub fn main() {
   gleeunit.main()
