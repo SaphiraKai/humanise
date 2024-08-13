@@ -7,6 +7,8 @@
 gleam add humanise
 ```
 ```gleam
+import gleam/io
+
 import humanise
 import humanise/time
 
@@ -14,6 +16,8 @@ pub fn main() {
   humanise.bytes_int(10_000) |> io.println // 10.0KB
 
   time.Seconds(0.5) |> time.humanise |> time.to_string |> io.println // 500.0ms
+
+  time.Hours(1.0) |> time.to_minutes |> io.debug // 60.0
 }
 ```
 
