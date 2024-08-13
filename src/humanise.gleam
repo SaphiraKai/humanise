@@ -5,6 +5,7 @@
 import gleam/int
 
 import humanise/bytes
+import humanise/bytes1024
 import humanise/time
 
 /// Format *n* microseconds as a `Float`, converting to a more optimal unit if possible.
@@ -115,4 +116,60 @@ pub fn terabytes_float(from n: Float) -> String {
 /// Format *n* terabytes as an `Int`, converting to a more optimal unit if possible.
 pub fn terabytes_int(from n: Int) -> String {
   bytes.Terabytes(int.to_float(n)) |> bytes.humanise |> bytes.to_string
+}
+
+/// Format *n* kibibytes as a `Float`, converting to a more optimal unit if possible.
+pub fn kibibytes_float(from n: Float) -> String {
+  bytes1024.Kibibytes(n)
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* kibibytes as an `Int`, converting to a more optimal unit if possible.
+pub fn kibibytes_int(from n: Int) -> String {
+  bytes1024.Kibibytes(int.to_float(n))
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* mebibytes as a `Float`, converting to a more optimal unit if possible.
+pub fn mebibytes_float(from n: Float) -> String {
+  bytes1024.Mebibytes(n)
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* mebibytes as an `Int`, converting to a more optimal unit if possible.
+pub fn mebibytes_int(from n: Int) -> String {
+  bytes1024.Mebibytes(int.to_float(n))
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* gibibytes as a `Float`, converting to a more optimal unit if possible.
+pub fn gibibytes_float(from n: Float) -> String {
+  bytes1024.Gibibytes(n)
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* gibibytes as an `Int`, converting to a more optimal unit if possible.
+pub fn gibibytes_int(from n: Int) -> String {
+  bytes1024.Gibibytes(int.to_float(n))
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* tebibytes as a `Float`, converting to a more optimal unit if possible.
+pub fn tebibytes_float(from n: Float) -> String {
+  bytes1024.Tebibytes(n)
+  |> bytes1024.humanise
+  |> bytes1024.to_string
+}
+
+/// Format *n* tebibytes as an `Int`, converting to a more optimal unit if possible.
+pub fn tebibytes_int(from n: Int) -> String {
+  bytes1024.Tebibytes(int.to_float(n))
+  |> bytes1024.humanise
+  |> bytes1024.to_string
 }
