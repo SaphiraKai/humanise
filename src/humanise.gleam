@@ -1,6 +1,6 @@
-//// This module contains a bunch of shortcuts to the `time` and `bytes` modules for directly "humanising" and formatting a number (`Float` or `Int`) to a `String`.
+//// This module contains a bunch of shortcuts to the `time`, `bytes` and 'bytes1024' modules for directly "humanising" and formatting a number (`Float` or `Int`) to a `String`.
 ////
-//// For more control (e.g. return `time.Time` or `bytes.Bytes` instead of a `String`, use the given unit instead of the most optimal one), look at the `time` or `bytes` modules.
+//// For more control (e.g. work with `time.Time` or `bytes.Bytes` directly, use the given unit instead of the most optimal one), look at the `time`, `bytes` or `bytes1024` modules.
 
 import gleam/int
 
