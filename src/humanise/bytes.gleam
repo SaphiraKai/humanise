@@ -8,13 +8,12 @@
 //// bytes.Kilobytes(2000.0) |> bytes.to_string // "2000.0KB"
 //// ```
 ////
-//// *Note: This module currently uses multiples of 1000 (kilobytes, megabytes etc), NOT multiples of 1024 (kibibytes, mebibytes, etc). Support for 1024-multiples will likely be added later!*
+//// *Note: This module is for 1000-multiple units! (kilobyte, megabyte, etc.)*
+//// *If you're looking for 1024-multiple units (kibibyte, mebibyte, etc.), look at the `bytes1024` module instead.*
 
 import gleam/bool
 
 import util
-
-// const byte = 1.0
 
 const kilobyte = 1000.0
 
@@ -35,7 +34,13 @@ pub type Bytes {
   Terabytes(Float)
 }
 
-fn to_b(bytes: Bytes) -> Float {
+/// Convert a value to bytes.
+///
+/// Example:
+/// ```
+/// bytes.Kilobytes(1.0) |> bytes.as_bytes // 1000.0
+/// ```
+pub fn as_bytes(this bytes: Bytes) -> Float {
   case bytes {
     Bytes(n) -> n
     Kilobytes(n) -> n *. kilobyte
@@ -45,6 +50,46 @@ fn to_b(bytes: Bytes) -> Float {
   }
 }
 
+/// Convert a value to kilobytes.
+///
+/// Example:
+/// ```
+/// bytes.Bytes(1000.0) |> bytes.as_kilobytes // 1.0
+/// ```
+pub fn as_kilobytes(this bytes: Bytes) -> Float {
+  as_bytes(bytes) /. kilobyte
+}
+
+/// Convert a value to megabytes.
+///
+/// Example:
+/// ```
+/// bytes.Kilobytes(1000.0) |> bytes.as_megabytes // 1.0
+/// ```
+pub fn as_megabytes(this bytes: Bytes) -> Float {
+  as_bytes(bytes) /. megabyte
+}
+
+/// Convert a value to gigabytes.
+///
+/// Example:
+/// ```
+/// bytes.Megabytes(1000.0) |> bytes.as_gigabytes // 1.0
+/// ```
+pub fn as_gigabytes(this bytes: Bytes) -> Float {
+  as_bytes(bytes) /. gigabyte
+}
+
+/// Convert a value to terabytes.
+///
+/// Example:
+/// ```
+/// bytes.Gigabytes(1000.0) |> bytes.as_terabytes // 1.0
+/// ```
+pub fn as_terabytes(this bytes: Bytes) -> Float {
+  as_bytes(bytes) /. terabyte
+}
+
 /// Convert a value to a more optimal unit, if possible.
 ///
 /// Example:
@@ -52,7 +97,7 @@ fn to_b(bytes: Bytes) -> Float {
 /// bytes.Megabytes(0.5) |> bytes.humanise // bytes.Kilobytes(500.0)
 /// ```
 pub fn humanise(this bytes: Bytes) -> Bytes {
-  let b = to_b(bytes)
+  let b = as_bytes(bytes)
 
   use <- bool.guard(when: b <. kilobyte, return: Bytes(b))
   use <- bool.guard(when: b <. megabyte, return: Kilobytes(b /. kilobyte))

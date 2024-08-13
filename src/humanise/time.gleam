@@ -10,11 +10,7 @@
 
 import gleam/bool
 
-// import gleam/int
-
 import util
-
-// const microsecond = 1.0
 
 const millisecond = 1000.0
 
@@ -41,7 +37,13 @@ pub type Time {
   Weeks(Float)
 }
 
-fn to_us(time: Time) -> Float {
+/// Convert a value to microseconds.
+///
+/// Example:
+/// ```
+/// time.Milliseconds(1.0) |> time.as_microseconds // 1000.0
+/// ```
+pub fn as_microseconds(this time: Time) -> Float {
   case time {
     Microseconds(n) -> n
     Milliseconds(n) -> n *. millisecond
@@ -53,6 +55,66 @@ fn to_us(time: Time) -> Float {
   }
 }
 
+/// Convert a value to milliseconds.
+///
+/// Example:
+/// ```
+/// time.Microseconds(1000.0) |> time.as_milliseconds // 1.0
+/// ```
+pub fn as_milliseconds(this time: Time) -> Float {
+  as_microseconds(time) /. millisecond
+}
+
+/// Convert a value to seconds.
+///
+/// Example:
+/// ```
+/// time.Milliseconds(1000.0) |> time.as_seconds // 1.0
+/// ```
+pub fn as_seconds(this time: Time) -> Float {
+  as_microseconds(time) /. second
+}
+
+/// Convert a value to minutes.
+///
+/// Example:
+/// ```
+/// time.Seconds(60.0) |> time.as_minutes // 1.0
+/// ```
+pub fn as_minutes(this time: Time) -> Float {
+  as_microseconds(time) /. minute
+}
+
+/// Convert a value to hours.
+///
+/// Example:
+/// ```
+/// time.Minutes(60.0) |> time.as_hours // 1.0
+/// ```
+pub fn as_hours(this time: Time) -> Float {
+  as_microseconds(time) /. hour
+}
+
+/// Convert a value to days.
+///
+/// Example:
+/// ```
+/// time.Hours(24.0) |> time.as_days // 1.0
+/// ```
+pub fn as_days(this time: Time) -> Float {
+  as_microseconds(time) /. day
+}
+
+/// Convert a value to weeks.
+///
+/// Example:
+/// ```
+/// time.Days(7.0) |> time.as_weeks // 1.0
+/// ```
+pub fn as_weeks(this time: Time) -> Float {
+  as_microseconds(time) /. week
+}
+
 /// Convert a value to a more optimal unit, if possible.
 ///
 /// Example:
@@ -60,7 +122,7 @@ fn to_us(time: Time) -> Float {
 /// time.Seconds(120.0) |> time.humanise // time.Minutes(2.0)
 /// ```
 pub fn humanise(this time: Time) -> Time {
-  let us = to_us(time)
+  let us = as_microseconds(time)
 
   use <- bool.guard(when: us <. millisecond, return: Microseconds(us))
   use <- bool.guard(when: us <. second, return: Milliseconds(us /. millisecond))
