@@ -12,22 +12,25 @@ import gleam/bool
 
 import util
 
-const millisecond = 1000.0
+const microsecond = 1000.0
 
-const second = 1_000_000.0
+const millisecond = 1_000_000.0
 
-const minute = 60_000_000.0
+const second = 1_000_000_000.0
 
-const hour = 3_600_000_000.0
+const minute = 60_000_000_000.0
 
-const day = 86_400_000_000.0
+const hour = 3_600_000_000_000.0
 
-const week = 604_800_000_000.0
+const day = 86_400_000_000_000.0
+
+const week = 604_800_000_000_000.0
 
 /// The main type for holding time information.
 ///
 /// Use its constructors directly to specify a unit for the value you want to format.
 pub type Time {
+  Nanoseconds(Float)
   Microseconds(Float)
   Milliseconds(Float)
   Seconds(Float)
@@ -37,15 +40,16 @@ pub type Time {
   Weeks(Float)
 }
 
-/// Convert a value to microseconds.
+/// Convert a value to nanoseconds.
 ///
 /// Example:
 /// ```
-/// time.Milliseconds(1.0) |> time.as_microseconds // 1000.0
+/// time.Microseconds(1.0) |> time.as_nanoseconds // 1000.0
 /// ```
-pub fn as_microseconds(this time: Time) -> Float {
+pub fn as_nanoseconds(this time: Time) -> Float {
   case time {
-    Microseconds(n) -> n
+    Nanoseconds(n) -> n
+    Microseconds(n) -> n *. microsecond
     Milliseconds(n) -> n *. millisecond
     Seconds(n) -> n *. second
     Minutes(n) -> n *. minute
@@ -55,6 +59,16 @@ pub fn as_microseconds(this time: Time) -> Float {
   }
 }
 
+/// Convert a value to microseconds.
+///
+/// Example:
+/// ```
+/// time.Nanoseconds(1000.0) |> time.as_microseconds // 1.0
+/// ```
+pub fn as_microseconds(this time: Time) -> Float {
+  as_nanoseconds(time) /. microsecond
+}
+
 /// Convert a value to milliseconds.
 ///
 /// Example:
@@ -62,7 +76,7 @@ pub fn as_microseconds(this time: Time) -> Float {
 /// time.Microseconds(1000.0) |> time.as_milliseconds // 1.0
 /// ```
 pub fn as_milliseconds(this time: Time) -> Float {
-  as_microseconds(time) /. millisecond
+  as_nanoseconds(time) /. millisecond
 }
 
 /// Convert a value to seconds.
@@ -72,7 +86,7 @@ pub fn as_milliseconds(this time: Time) -> Float {
 /// time.Milliseconds(1000.0) |> time.as_seconds // 1.0
 /// ```
 pub fn as_seconds(this time: Time) -> Float {
-  as_microseconds(time) /. second
+  as_nanoseconds(time) /. second
 }
 
 /// Convert a value to minutes.
@@ -82,7 +96,7 @@ pub fn as_seconds(this time: Time) -> Float {
 /// time.Seconds(60.0) |> time.as_minutes // 1.0
 /// ```
 pub fn as_minutes(this time: Time) -> Float {
-  as_microseconds(time) /. minute
+  as_nanoseconds(time) /. minute
 }
 
 /// Convert a value to hours.
@@ -92,7 +106,7 @@ pub fn as_minutes(this time: Time) -> Float {
 /// time.Minutes(60.0) |> time.as_hours // 1.0
 /// ```
 pub fn as_hours(this time: Time) -> Float {
-  as_microseconds(time) /. hour
+  as_nanoseconds(time) /. hour
 }
 
 /// Convert a value to days.
@@ -102,7 +116,7 @@ pub fn as_hours(this time: Time) -> Float {
 /// time.Hours(24.0) |> time.as_days // 1.0
 /// ```
 pub fn as_days(this time: Time) -> Float {
-  as_microseconds(time) /. day
+  as_nanoseconds(time) /. day
 }
 
 /// Convert a value to weeks.
@@ -112,7 +126,7 @@ pub fn as_days(this time: Time) -> Float {
 /// time.Days(7.0) |> time.as_weeks // 1.0
 /// ```
 pub fn as_weeks(this time: Time) -> Float {
-  as_microseconds(time) /. week
+  as_nanoseconds(time) /. week
 }
 
 /// Convert a value to a more optimal unit, if possible.
@@ -122,16 +136,20 @@ pub fn as_weeks(this time: Time) -> Float {
 /// time.Seconds(120.0) |> time.humanise // time.Minutes(2.0)
 /// ```
 pub fn humanise(this time: Time) -> Time {
-  let us = as_microseconds(time)
+  let ns = as_nanoseconds(time)
 
-  use <- bool.guard(when: us <. millisecond, return: Microseconds(us))
-  use <- bool.guard(when: us <. second, return: Milliseconds(us /. millisecond))
-  use <- bool.guard(when: us <. minute, return: Seconds(us /. second))
-  use <- bool.guard(when: us <. hour, return: Minutes(us /. minute))
-  use <- bool.guard(when: us <. day, return: Hours(us /. hour))
-  use <- bool.guard(when: us <. week, return: Days(us /. day))
+  use <- bool.guard(when: ns <. microsecond, return: Nanoseconds(ns))
+  use <- bool.guard(
+    when: ns <. millisecond,
+    return: Microseconds(ns /. microsecond),
+  )
+  use <- bool.guard(when: ns <. second, return: Milliseconds(ns /. millisecond))
+  use <- bool.guard(when: ns <. minute, return: Seconds(ns /. second))
+  use <- bool.guard(when: ns <. hour, return: Minutes(ns /. minute))
+  use <- bool.guard(when: ns <. day, return: Hours(ns /. hour))
+  use <- bool.guard(when: ns <. week, return: Days(ns /. day))
 
-  Weeks(us /. week)
+  Weeks(ns /. week)
 }
 
 /// Format a value as a `String`, rounded to at most 2 decimal places, followed by a unit suffix.
@@ -142,6 +160,7 @@ pub fn humanise(this time: Time) -> Time {
 /// ```
 pub fn to_string(this time: Time) -> String {
   let #(n, suffix) = case time {
+    Nanoseconds(ns) -> #(ns, "ns")
     Microseconds(us) -> #(us, "us")
     Milliseconds(ms) -> #(ms, "ms")
     Seconds(s) -> #(s, "s")

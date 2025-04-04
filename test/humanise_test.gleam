@@ -50,7 +50,7 @@ pub fn time_humanise_test() {
 
   time.Seconds(0.0)
   |> time.humanise
-  |> should.equal(time.Microseconds(0.0))
+  |> should.equal(time.Nanoseconds(0.0))
 
   time.Minutes(120.0)
   |> time.humanise
