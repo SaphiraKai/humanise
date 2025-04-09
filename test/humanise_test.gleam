@@ -230,3 +230,17 @@ pub fn bytes1024_conversion_test() {
   |> bytes1024.as_gibibytes
   |> should.equal(512.0)
 }
+
+pub fn negative_numbers_humanise_test() {
+  time.Hours(-48.0)
+  |> time.humanise
+  |> should.equal(time.Days(-2.0))
+
+  bytes.Megabytes(-2000.0)
+  |> bytes.humanise
+  |> should.equal(bytes.Gigabytes(-2.0))
+
+  bytes1024.Mebibytes(-4096.0)
+  |> bytes1024.humanise
+  |> should.equal(bytes1024.Gibibytes(-4.0))
+}

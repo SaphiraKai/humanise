@@ -12,6 +12,7 @@
 //// *If you're looking for 1024-multiple units (kibibyte, mebibyte, etc.), look at the `bytes1024` module instead.*
 
 import gleam/bool
+import gleam/float
 
 import util
 
@@ -97,12 +98,13 @@ pub fn as_terabytes(this bytes: Bytes) -> Float {
 /// bytes.Megabytes(0.5) |> bytes.humanise // bytes.Kilobytes(500.0)
 /// ```
 pub fn humanise(this bytes: Bytes) -> Bytes {
+  let abs = float.absolute_value
   let b = as_bytes(bytes)
 
-  use <- bool.guard(when: b <. kilobyte, return: Bytes(b))
-  use <- bool.guard(when: b <. megabyte, return: Kilobytes(b /. kilobyte))
-  use <- bool.guard(when: b <. gigabyte, return: Megabytes(b /. megabyte))
-  use <- bool.guard(when: b <. terabyte, return: Gigabytes(b /. gigabyte))
+  use <- bool.guard(when: abs(b) <. kilobyte, return: Bytes(b))
+  use <- bool.guard(when: abs(b) <. megabyte, return: Kilobytes(b /. kilobyte))
+  use <- bool.guard(when: abs(b) <. gigabyte, return: Megabytes(b /. megabyte))
+  use <- bool.guard(when: abs(b) <. terabyte, return: Gigabytes(b /. gigabyte))
 
   Terabytes(b /. terabyte)
 }

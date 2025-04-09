@@ -9,6 +9,7 @@
 //// ```
 
 import gleam/bool
+import gleam/float
 
 import util
 
@@ -136,18 +137,22 @@ pub fn as_weeks(this time: Time) -> Float {
 /// time.Seconds(120.0) |> time.humanise // time.Minutes(2.0)
 /// ```
 pub fn humanise(this time: Time) -> Time {
+  let abs = float.absolute_value
   let ns = as_nanoseconds(time)
 
-  use <- bool.guard(when: ns <. microsecond, return: Nanoseconds(ns))
+  use <- bool.guard(when: abs(ns) <. microsecond, return: Nanoseconds(ns))
   use <- bool.guard(
-    when: ns <. millisecond,
+    when: abs(ns) <. millisecond,
     return: Microseconds(ns /. microsecond),
   )
-  use <- bool.guard(when: ns <. second, return: Milliseconds(ns /. millisecond))
-  use <- bool.guard(when: ns <. minute, return: Seconds(ns /. second))
-  use <- bool.guard(when: ns <. hour, return: Minutes(ns /. minute))
-  use <- bool.guard(when: ns <. day, return: Hours(ns /. hour))
-  use <- bool.guard(when: ns <. week, return: Days(ns /. day))
+  use <- bool.guard(
+    when: abs(ns) <. second,
+    return: Milliseconds(ns /. millisecond),
+  )
+  use <- bool.guard(when: abs(ns) <. minute, return: Seconds(ns /. second))
+  use <- bool.guard(when: abs(ns) <. hour, return: Minutes(ns /. minute))
+  use <- bool.guard(when: abs(ns) <. day, return: Hours(ns /. hour))
+  use <- bool.guard(when: abs(ns) <. week, return: Days(ns /. day))
 
   Weeks(ns /. week)
 }

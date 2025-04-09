@@ -12,6 +12,7 @@
 //// *If you're looking for 1000-multiple units (kilobyte, megabyte, etc.), look at the `bytes` module instead.*
 
 import gleam/bool
+import gleam/float
 
 import util
 
@@ -97,12 +98,13 @@ pub fn as_tebibytes(this bytes: Bytes) -> Float {
 /// bytes1024.Mebibytes(0.5) |> bytes1024.humanise // bytes1024.Kibibytes(512.0)
 /// ```
 pub fn humanise(this bytes: Bytes) -> Bytes {
+  let abs = float.absolute_value
   let b = as_bytes(bytes)
 
-  use <- bool.guard(when: b <. kibibyte, return: Bytes(b))
-  use <- bool.guard(when: b <. mebibyte, return: Kibibytes(b /. kibibyte))
-  use <- bool.guard(when: b <. gibibyte, return: Mebibytes(b /. mebibyte))
-  use <- bool.guard(when: b <. tebibyte, return: Gibibytes(b /. gibibyte))
+  use <- bool.guard(when: abs(b) <. kibibyte, return: Bytes(b))
+  use <- bool.guard(when: abs(b) <. mebibyte, return: Kibibytes(b /. kibibyte))
+  use <- bool.guard(when: abs(b) <. gibibyte, return: Mebibytes(b /. mebibyte))
+  use <- bool.guard(when: abs(b) <. tebibyte, return: Gibibytes(b /. gibibyte))
 
   Tebibytes(b /. tebibyte)
 }
