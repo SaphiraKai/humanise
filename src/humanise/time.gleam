@@ -3,7 +3,7 @@
 //// Usage generally looks like this:
 //// ```
 //// time.Millisecond(2000.0) |> time.humanise |> time.to_string // "2.0s"
-//// 
+////
 //// // or, if you don't want to change the unit
 //// time.Millisecond(2000.0) |> time.to_string // "2000.0ms"
 //// ```
