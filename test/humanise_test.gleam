@@ -1,6 +1,10 @@
+import gleam/time/calendar
+import gleam/time/timestamp
+
 import gleeunit
 import gleeunit/should
 
+import humanise
 import humanise/bytes
 import humanise/bytes1024
 import humanise/time
@@ -243,4 +247,85 @@ pub fn negative_numbers_humanise_test() {
   bytes1024.Mebibytes(-4096.0)
   |> bytes1024.humanise
   |> should.equal(bytes1024.Gibibytes(-4.0))
+}
+
+pub fn date_relative_test() {
+  humanise.date_relative(
+    timestamp.from_unix_seconds(10),
+    timestamp.from_unix_seconds(0),
+  )
+  |> should.equal("in 10.0s")
+
+  humanise.date_relative(
+    timestamp.from_unix_seconds(0),
+    timestamp.from_unix_seconds(10),
+  )
+  |> should.equal("10.0s ago")
+
+  humanise.date_relative(
+    timestamp.from_unix_seconds(604_800),
+    timestamp.from_unix_seconds(0),
+  )
+  |> should.equal("in 1.0w")
+}
+
+pub fn date_test() {
+  humanise.date(
+    timestamp.from_unix_seconds(0) |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("00:00:00")
+
+  humanise.date(
+    timestamp.from_unix_seconds(1)
+      |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("00:00:01")
+
+  humanise.date(
+    timestamp.from_unix_seconds(60)
+      |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("00:01:00")
+
+  humanise.date(
+    timestamp.from_unix_seconds(3600)
+      |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("01:00:00")
+
+  humanise.date(
+    timestamp.from_unix_seconds(86_400)
+      |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("January 2 00:00:00")
+
+  humanise.date(
+    timestamp.from_unix_seconds(31_536_000)
+      |> timestamp.to_calendar(calendar.utc_offset),
+    {
+      timestamp.from_unix_seconds(0)
+      |> timestamp.to_calendar(calendar.utc_offset)
+    }.0,
+  )
+  |> should.equal("1971 January 1 00:00:00")
 }
