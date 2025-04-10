@@ -10,6 +10,7 @@
 
 import gleam/bool
 import gleam/float
+import gleam/time/duration.{type Duration}
 
 import util
 
@@ -39,6 +40,16 @@ pub type Time {
   Hours(Float)
   Days(Float)
   Weeks(Float)
+}
+
+/// Convert a Duration from gleam/time.
+///
+/// Example:
+/// ```
+/// duration.seconds(120) |> time.from_duration // time.Minutes(2.0)
+/// ```
+pub fn from_duration(this duration: Duration) -> Time {
+  Seconds(duration |> duration.to_seconds) |> humanise
 }
 
 /// Convert a value to nanoseconds.

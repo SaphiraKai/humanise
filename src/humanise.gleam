@@ -2,11 +2,124 @@
 ////
 //// For more control (e.g. work with `time.Time` or `bytes.Bytes` directly, use the given unit instead of the most optimal one), look at the `time`, `bytes` or `bytes1024` modules.
 
+import gleam/float
 import gleam/int
+import gleam/time/calendar.{type Date, type TimeOfDay, Date, TimeOfDay}
+import gleam/time/duration.{type Duration}
+import gleam/time/timestamp.{type Timestamp}
 
 import humanise/bytes
 import humanise/bytes1024
 import humanise/time
+
+pub fn date_relative(from date: Timestamp, now current: Timestamp) -> String {
+  let relative = current |> timestamp.difference(date) |> time.from_duration
+
+  let decompose = fn(a) {
+    case a {
+      time.Nanoseconds(n) -> #(time.Nanoseconds, n)
+      time.Days(n) -> #(time.Days, n)
+      time.Hours(n) -> #(time.Hours, n)
+      time.Microseconds(n) -> #(time.Microseconds, n)
+      time.Milliseconds(n) -> #(time.Milliseconds, n)
+      time.Minutes(n) -> #(time.Minutes, n)
+      time.Seconds(n) -> #(time.Seconds, n)
+      time.Weeks(n) -> #(time.Weeks, n)
+    }
+  }
+
+  let #(constructor, n) = decompose(relative)
+
+  case n >=. 0.0 {
+    True -> "in " <> time.to_string(relative)
+    False -> time.to_string(constructor(float.absolute_value(n))) <> " ago"
+  }
+}
+
+/// Format a `Date`, `TimeOfDay` pair, automatically omitting redundant information (omit year if it matches the current year, omit month and day if it also matches the current day)
+///
+/// The given date will be compared against the provided "current" date to determine what information to omit.
+///
+/// This function does not currently support internationalization, and simply returns a string in the following largest-to-smallest format:
+/// ```
+/// <maybe year> <maybe <month> <day>> <hours>:<minutes>:<seconds>
+/// ```
+/// Note that hours are in 24 hour format, not 12 hours with AM/PM.
+pub fn date(from date: #(Date, TimeOfDay), now current: Date) -> String {
+  let year_matches = case current, date.0 {
+    Date(current, ..), Date(given, ..) if current == given -> True
+    _, _ -> False
+  }
+
+  let day_matches = case current, date.0 {
+    Date(_, _, current), Date(_, _, given) if current == given -> True
+    _, _ -> False
+  }
+
+  let Date(year, month, day) = date.0
+  let TimeOfDay(hours, minutes, seconds, _) = date.1
+
+  let maybe_year = case year_matches {
+    True -> ""
+    False -> int.to_string(year) <> " "
+  }
+  let maybe_month = case year_matches && day_matches, month {
+    True, _ -> ""
+    _, calendar.April -> "April "
+    _, calendar.August -> "August "
+    _, calendar.December -> "December "
+    _, calendar.February -> "February "
+    _, calendar.January -> "January "
+    _, calendar.July -> "July "
+    _, calendar.June -> "June "
+    _, calendar.March -> "March "
+    _, calendar.May -> "May "
+    _, calendar.November -> "November "
+    _, calendar.October -> "October "
+    _, calendar.September -> "September "
+  }
+  let maybe_day = case year_matches && day_matches {
+    True -> ""
+    False -> int.to_string(day) <> " "
+  }
+
+  let hours = case hours < 10 {
+    True -> "0" <> int.to_string(hours)
+    False -> int.to_string(hours)
+  }
+  let minutes = case minutes < 10 {
+    True -> "0" <> int.to_string(minutes)
+    False -> int.to_string(minutes)
+  }
+  let seconds = case seconds < 10 {
+    True -> "0" <> int.to_string(seconds)
+    False -> int.to_string(seconds)
+  }
+
+  maybe_year
+  <> maybe_month
+  <> maybe_day
+  <> hours
+  <> ":"
+  <> minutes
+  <> ":"
+  <> seconds
+}
+
+/// Format a `Duration`, using the most optimal unit.
+pub fn duration(from duration: Duration) -> String {
+  time.from_duration(duration) |> time.to_string
+}
+
+/// Format *n* nanoseconds as a `Float`, converting to a more optimal unit if possible.
+pub fn nanoseconds_float(from n: Float) -> String {
+  time.Nanoseconds(n) |> time.humanise |> time.to_string
+}
+
+/// Format *n* nanoseconds as a `Float`, converting to a more optimal unit if possible.
+pub fn nanoseconds_int(from n: Int) -> String {
+  time.Nanoseconds(int.to_float(n)) |> time.humanise |> time.to_string
+}
 
 /// Format *n* microseconds as a `Float`, converting to a more optimal unit if possible.
 pub fn microseconds_float(from n: Float) -> String {
