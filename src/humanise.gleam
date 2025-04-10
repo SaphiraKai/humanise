@@ -12,6 +12,9 @@ import humanise/bytes
 import humanise/bytes1024
 import humanise/time
 
+/// Format a `Timestamp` relative to the provided current `Timestamp`.
+///
+/// This function finds the difference between the current time and the given time, and returns a string describing the difference. (e.g. "in 2.0s", "3.5d ago")
 pub fn date_relative(from date: Timestamp, now current: Timestamp) -> String {
   let relative = current |> timestamp.difference(date) |> time.from_duration
 
