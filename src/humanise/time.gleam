@@ -42,7 +42,7 @@ pub type Time {
   Weeks(Float)
 }
 
-/// Convert a Duration from gleam/time.
+/// Convert a Duration from `gleam/time`.
 ///
 /// Example:
 /// ```
