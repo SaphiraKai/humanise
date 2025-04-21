@@ -12,7 +12,7 @@ import gleam/bool
 import gleam/float
 import gleam/time/duration.{type Duration}
 
-import util
+import humanise/util
 
 const microsecond = 1000.0
 

@@ -14,7 +14,7 @@
 import gleam/bool
 import gleam/float
 
-import util
+import humanise/util
 
 const kibibyte = 1024.0
 

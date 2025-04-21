@@ -14,7 +14,7 @@
 import gleam/bool
 import gleam/float
 
-import util
+import humanise/util
 
 const kilobyte = 1000.0
 
