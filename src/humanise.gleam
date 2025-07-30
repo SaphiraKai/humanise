@@ -15,6 +15,8 @@ import humanise/time
 /// Format a `Timestamp` relative to the provided current `Timestamp`.
 ///
 /// This function finds the difference between the current time and the given time, and returns a string describing the difference. (e.g. "in 2.0s", "3.5d ago")
+///
+/// > If you're looking for prettier messages without decimal precision, I recommend the `timeago` package!
 pub fn date_relative(from date: Timestamp, now current: Timestamp) -> String {
   let relative = current |> timestamp.difference(date) |> time.from_duration
 
