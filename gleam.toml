@@ -9,7 +9,7 @@ licences = ["Apache-2.0"]
 repository = { type = "github", user = "SaphiraKai", repo = "humanise" }
 links = []
 internal_modules = [
-  "util"
+  "humanise/util"
 ]
 #
 # For a full reference of all the available options, you can have a look at
