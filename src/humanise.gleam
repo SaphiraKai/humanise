@@ -1,6 +1,8 @@
-//// This module contains a bunch of shortcuts to the `time`, `bytes` and 'bytes1024' modules for directly "humanising" and formatting a number (`Float` or `Int`) to a `String`.
+//// This module contains a bunch of shortcuts to the `time`, `bytes` and 'bytes1024' modules for directly "humanising"
+//// and formatting a number (`Float` or `Int`) to a `String`.
 ////
-//// For more control (e.g. work with `time.Time` or `bytes.Bytes` directly, use the given unit instead of the most optimal one), look at the `time`, `bytes` or `bytes1024` modules.
+//// For more control (e.g. work with `time.Time` or `bytes.Bytes` directly, use the given unit instead of the most
+//// optimal one), look at the `time`, `bytes` or `bytes1024` modules.
 
 import gleam/float
 import gleam/int
@@ -11,41 +13,46 @@ import gleam/time/timestamp.{type Timestamp}
 import humanise/bytes
 import humanise/bytes1024
 import humanise/time
+import humanise/util
 
 /// Format a `Timestamp` relative to the provided current `Timestamp`.
 ///
-/// This function finds the difference between the current time and the given time, and returns a string describing the difference. (e.g. "in 2.0s", "3.5d ago")
+/// This function finds the difference between the current time and the given time, and returns a string describing the
+/// difference using the provided formatter. (e.g. `"in 2s"`, `"3 days, 12 hours ago"`)
 ///
-/// > If you're looking for prettier messages without decimal precision, I recommend the `timeago` package!
-pub fn date_relative(from date: Timestamp, now current: Timestamp) -> String {
+/// Examples:
+///
+/// ```
+/// let now = timestamp.system_time()
+///
+/// let from = now |> timestamp.add(duration.hours(36))
+/// humanise.date_relative(from:, now:, with: time.to_string) // "in 1.5d" 
+///
+/// let from = now |> timestamp.add(duration.hours(-36))
+/// humanise.date_relative(from:, now:, with: time.split(_, time.to_string_full)) // "1 day, 12 hours ago"
+/// ```
+pub fn date_relative(
+  from date: Timestamp,
+  now current: Timestamp,
+  with format: fn(time.Time) -> String,
+) -> String {
   let relative = current |> timestamp.difference(date) |> time.from_duration
 
-  let decompose = fn(a) {
-    case a {
-      time.Nanoseconds(n) -> #(time.Nanoseconds, n)
-      time.Days(n) -> #(time.Days, n)
-      time.Hours(n) -> #(time.Hours, n)
-      time.Microseconds(n) -> #(time.Microseconds, n)
-      time.Milliseconds(n) -> #(time.Milliseconds, n)
-      time.Minutes(n) -> #(time.Minutes, n)
-      time.Seconds(n) -> #(time.Seconds, n)
-      time.Weeks(n) -> #(time.Weeks, n)
-    }
-  }
+  let #(value, constructor) = time.decompose(relative)
 
-  let #(constructor, n) = decompose(relative)
-
-  case n >=. 0.0 {
-    True -> "in " <> time.to_string(relative)
-    False -> time.to_string(constructor(float.absolute_value(n))) <> " ago"
+  case value >=. 0.0 {
+    True -> "in " <> format(relative)
+    False -> float.absolute_value(value) |> constructor |> format <> " ago"
   }
 }
 
-/// Format a `Date`, `TimeOfDay` pair, automatically omitting redundant information (omit year if it matches the current year, omit month and day if it also matches the current day)
-///
+/// Format a `Date`, `TimeOfDay` pair, automatically omitting redundant information (omit year if it matches the current
+/// year, omit month and day if it also matches the current day)
+/// 
 /// The given date will be compared against the provided "current" date to determine what information to omit.
 ///
-/// This function does not currently support internationalization, and simply returns a string in the following largest-to-smallest format:
+/// This function does not currently support internationalization, and simply returns a string in the following
+/// largest-to-smallest format:
 /// ```
 /// <maybe year> <maybe <month> <day>> <hours>:<minutes>:<seconds>
 /// ```
@@ -186,6 +193,26 @@ pub fn weeks_int(from n: Int) -> String {
   time.Weeks(int.to_float(n)) |> time.humanise |> time.to_string
 }
 
+/// Format *n* months as a `Float`, converting to a more optimal unit if possible.
+pub fn months_float(from n: Float) -> String {
+  time.Months(n) |> time.humanise |> time.to_string
+}
+
+/// Format *n* months as an `Int`, converting to a more optimal unit if possible.
+pub fn months_int(from n: Int) -> String {
+  time.Months(int.to_float(n)) |> time.humanise |> time.to_string
+}
+
+/// Format *n* years as a `Float`, converting to a more optimal unit if possible.
+pub fn years_float(from n: Float) -> String {
+  time.Years(n) |> time.humanise |> time.to_string
+}
+
+/// Format *n* years as an `Int`, converting to a more optimal unit if possible.
+pub fn years_int(from n: Int) -> String {
+  time.Years(int.to_float(n)) |> time.humanise |> time.to_string
+}
+
 /// Format *n* bytes as a `Float`, converting to a more optimal unit if possible.
 pub fn bytes_float(from n: Float) -> String {
   bytes.Bytes(n) |> bytes.humanise |> bytes.to_string
@@ -290,4 +317,34 @@ pub fn tebibytes_int(from n: Int) -> String {
   bytes1024.Tebibytes(int.to_float(n))
   |> bytes1024.humanise
   |> bytes1024.to_string
+}
+
+/// Convert from 1000-multiple `bytes.Bytes` to 1024-multiple `bytes1024.Bytes`.
+pub fn bytes_to_bytes1024(from data: bytes.Bytes) -> bytes1024.Bytes {
+  case data {
+    bytes.Bytes(a) -> bytes1024.Bytes(a)
+    bytes.Kilobytes(a) ->
+      bytes1024.Kibibytes(a *. util.kilobyte /. util.kibibyte)
+    bytes.Megabytes(a) ->
+      bytes1024.Mebibytes(a *. util.megabyte /. util.mebibyte)
+    bytes.Gigabytes(a) ->
+      bytes1024.Gibibytes(a *. util.gigabyte /. util.gibibyte)
+    bytes.Terabytes(a) ->
+      bytes1024.Tebibytes(a *. util.terabyte /. util.tebibyte)
+  }
+}
+
+/// Convert from 1000-multiple `bytes.Bytes` to 1024-multiple `bytes1024.Bytes`.
+pub fn bytes1024_to_bytes(from data: bytes1024.Bytes) -> bytes.Bytes {
+  case data {
+    bytes1024.Bytes(a) -> bytes.Bytes(a)
+    bytes1024.Kibibytes(a) ->
+      bytes.Kilobytes(a *. util.kibibyte /. util.kilobyte)
+    bytes1024.Mebibytes(a) ->
+      bytes.Megabytes(a *. util.mebibyte /. util.megabyte)
+    bytes1024.Gibibytes(a) ->
+      bytes.Gigabytes(a *. util.gibibyte /. util.gigabyte)
+    bytes1024.Tebibytes(a) ->
+      bytes.Terabytes(a *. util.tebibyte /. util.terabyte)
+  }
 }

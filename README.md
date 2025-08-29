@@ -13,11 +13,13 @@ import humanise
 import humanise/time
 
 pub fn main() {
-  humanise.bytes_int(10_000) |> io.println // 10.0KB
+  humanise.bytes_int(10_000) |> io.println // 10KB
 
-  time.Seconds(0.5) |> time.humanise |> time.to_string |> io.println // 500.0ms
+  time.Seconds(0.5) |> time.humanise |> time.to_string |> io.println // 500ms
 
-  time.Hours(1.0) |> time.to_minutes |> io.debug // 60.0
+  time.Hours(1.0) |> time.to_minutes |> echo // 60.0
+
+  time.Months(1.075) |> time.split(time.to_string_full) |> io.println // 1 month, 2.3 days
 }
 ```
 

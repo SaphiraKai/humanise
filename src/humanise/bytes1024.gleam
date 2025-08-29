@@ -1,28 +1,19 @@
-//// This module contains functions for formatting 1024-multiple amounts of data to `String`s (e.g. `"100.0B"`, `"1.5GiB"`).
+//// This module contains functions for formatting 1024-multiple amounts of data to `String`s (e.g. `"100B"`, `"1.5GiB"`).
 ////
 //// Usage generally looks like this:
 //// ```
-//// bytes1024.Kibibytes(2048.0) |> bytes1024.humanise |> bytes1024.to_string // "2.0MiB"
+//// bytes1024.Kibibytes(2048.0) |> bytes1024.humanise |> bytes1024.to_string // "2MiB"
 //// 
 //// // or, if you don't want to change the unit
-//// bytes1024.Kilobytes(2048.0) |> bytes1024.to_string // "2048.0KiB"
+//// bytes1024.Kibibytes(2048.0) |> bytes1024.to_string // "2048KiB"
 //// ```
 ////
 //// *Note: This module is for 1024-multiple units! (kibibyte, megbibyte, etc.)*
 //// *If you're looking for 1000-multiple units (kilobyte, megabyte, etc.), look at the `bytes` module instead.*
 
-import gleam/bool
 import gleam/float
 
 import humanise/util
-
-const kibibyte = 1024.0
-
-const mebibyte = 1_048_576.0
-
-const gibibyte = 1_073_741_824.0
-
-const tebibyte = 1_099_511_627_776.0
 
 /// The main type for holding data amount information.
 ///
@@ -44,10 +35,10 @@ pub type Bytes {
 pub fn as_bytes(this bytes: Bytes) -> Float {
   case bytes {
     Bytes(n) -> n
-    Kibibytes(n) -> n *. kibibyte
-    Mebibytes(n) -> n *. mebibyte
-    Gibibytes(n) -> n *. gibibyte
-    Tebibytes(n) -> n *. tebibyte
+    Kibibytes(n) -> n *. util.kibibyte
+    Mebibytes(n) -> n *. util.mebibyte
+    Gibibytes(n) -> n *. util.gibibyte
+    Tebibytes(n) -> n *. util.tebibyte
   }
 }
 
@@ -58,7 +49,7 @@ pub fn as_bytes(this bytes: Bytes) -> Float {
 /// bytes1024.Bytes(1024.0) |> bytes1024.as_kibibytes // 1.0
 /// ```
 pub fn as_kibibytes(this bytes: Bytes) -> Float {
-  as_bytes(bytes) /. kibibyte
+  as_bytes(bytes) /. util.kibibyte
 }
 
 /// Convert a value to mebibytes.
@@ -68,7 +59,7 @@ pub fn as_kibibytes(this bytes: Bytes) -> Float {
 /// bytes1024.Kibibytes(1024.0) |> bytes1024.as_mebibytes // 1.0
 /// ```
 pub fn as_mebibytes(this bytes: Bytes) -> Float {
-  as_bytes(bytes) /. mebibyte
+  as_bytes(bytes) /. util.mebibyte
 }
 
 /// Convert a value to gibibytes.
@@ -78,7 +69,7 @@ pub fn as_mebibytes(this bytes: Bytes) -> Float {
 /// bytes1024.Mebibytes(1024.0) |> bytes1024.as_gibibytes // 1.0
 /// ```
 pub fn as_gibibytes(this bytes: Bytes) -> Float {
-  as_bytes(bytes) /. gibibyte
+  as_bytes(bytes) /. util.gibibyte
 }
 
 /// Convert a value to tebibytes.
@@ -88,7 +79,7 @@ pub fn as_gibibytes(this bytes: Bytes) -> Float {
 /// bytes1024.Gibibytes(1024.0) |> bytes1024.as_tebibytes // 1.0
 /// ```
 pub fn as_tebibytes(this bytes: Bytes) -> Float {
-  as_bytes(bytes) /. tebibyte
+  as_bytes(bytes) /. util.tebibyte
 }
 
 /// Convert a value to a more optimal unit, if possible.
@@ -98,15 +89,15 @@ pub fn as_tebibytes(this bytes: Bytes) -> Float {
 /// bytes1024.Mebibytes(0.5) |> bytes1024.humanise // bytes1024.Kibibytes(512.0)
 /// ```
 pub fn humanise(this bytes: Bytes) -> Bytes {
-  let abs = float.absolute_value
   let b = as_bytes(bytes)
 
-  use <- bool.guard(when: abs(b) <. kibibyte, return: Bytes(b))
-  use <- bool.guard(when: abs(b) <. mebibyte, return: Kibibytes(b /. kibibyte))
-  use <- bool.guard(when: abs(b) <. gibibyte, return: Mebibytes(b /. mebibyte))
-  use <- bool.guard(when: abs(b) <. tebibyte, return: Gibibytes(b /. gibibyte))
-
-  Tebibytes(b /. tebibyte)
+  case float.absolute_value(b) {
+    abs_b if abs_b <. util.kibibyte -> Bytes(b)
+    abs_b if abs_b <. util.mebibyte -> Kibibytes(b /. util.kibibyte)
+    abs_b if abs_b <. util.gibibyte -> Mebibytes(b /. util.mebibyte)
+    abs_b if abs_b <. util.terabyte -> Gibibytes(b /. util.gibibyte)
+    _ -> Tebibytes(b /. util.tebibyte)
+  }
 }
 
 /// Format a value as a `String`, rounded to at most 2 decimal places, followed by a unit suffix.
@@ -125,4 +116,49 @@ pub fn to_string(this bytes: Bytes) -> String {
   }
 
   util.format(n, suffix)
+}
+
+/// 
+/// Format a value as a `String`, rounded to at most 1 decimal place, followed by a long unit suffix.
+///
+/// Example:
+/// ```
+/// bytes1024.Gibibytes(30.125) |> bytes1024.to_string_full // "30.1 gibibytes"
+/// bytes1024.Mebibytes(1.0) |> bytes1024.to_string_full // "1 mebibyte"
+/// ```
+pub fn to_string_full(this bytes: Bytes) -> String {
+  let #(n, suffix) = case bytes {
+    Bytes(n) -> #(n, " byte")
+    Kibibytes(n) -> #(n, " kibibyte")
+    Mebibytes(n) -> #(n, " mebibyte")
+    Gibibytes(n) -> #(n, " gibibyte")
+    Tebibytes(n) -> #(n, " tebibyte")
+  }
+
+  let plural = case n {
+    1.0 -> ""
+    _ -> "s"
+  }
+
+  util.format(n, suffix) <> plural
+}
+
+/// Decompose a value into its inner value and constructor.
+///
+/// This is useful if you need to operate directly on the value and then reconstruct it (i.e. for custom rounding precision).
+///
+/// Example:
+/// ```
+/// let #(value, constructor) = bytes1024.decompose(bytes1024.Mebibytes(2.0))
+///
+/// constructor(value *. 2.0) // bytes1024.Mebibytes(4.0)
+/// ```
+pub fn decompose(time: Bytes) -> #(Float, fn(Float) -> Bytes) {
+  case time {
+    Bytes(a) -> #(a, Bytes)
+    Gibibytes(a) -> #(a, Gibibytes)
+    Kibibytes(a) -> #(a, Kibibytes)
+    Mebibytes(a) -> #(a, Mebibytes)
+    Tebibytes(a) -> #(a, Tebibytes)
+  }
 }
